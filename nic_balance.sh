@@ -1,16 +1,27 @@
 #!/bin/bash
 # nic_balance.sh
-# usage: nic_balance.sh NIC num_of_cpu
+# usage: nic_balance.sh NIC_NAME
 
-cpu=0
+# 获取 node1 节点上的 CPU ID,组合成数组
+cpu=(`numactl --hardware | grep "node 1 cpus" | awk -F: '{print $2}'`)
+len_cpu=${#cpu[@]}
 
-grep $1 /proc/interrupts | awk '{print $1}'| sed 's/://' | while read a
+# 获取某网卡接口上的中断 ID，并组合成数组
+nic_irq=(`grep $1 /proc/interrupts|awk '{print $1}'|sed 's/://'`)
+len_nic_irq=${#nic_irq[@]}
+
+# 将 node1 上的 CPU 与对应网卡上的 ID 进行绑定
+for ((n=0; n<$len_nic_irq; n++))
 do
-	echo $cpu > /proc/irq/$a/smp_affinity_list
-	echo "echo $cpu > /proc/irq/$a/smp_affinity_list"
- 	if [ $cpu = $2 ]
- 	then
- 		cpu=0
- 	fi
- 	    let cpu=cpu+1
+
+    if [ $n -lt $len_cpu ]
+    then
+        echo ${cpu[n]} > /proc/irq/${nic_irq[n]}/smp_affinity_list
+        echo "echo ${cpu[n]} > /proc/irq/${nic_irq[n]}/smp_affinity_list"
+    else
+        m=`expr $n - $len_cpu`
+        echo ${cpu[m]} > /proc/irq/${nic_irq[n]}/smp_affinity_list
+        echo "echo ${cpu[m]} > /proc/irq/${nic_irq[n]}/smp_affinity_list"
+    fi
+
 done
