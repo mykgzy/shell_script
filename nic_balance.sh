@@ -2,10 +2,12 @@
 # nic_balance.sh
 # usage: nic_balance.sh NIC_NAME
 
+nic_name=$1
+
 # 消息通知字段
 function msg ()
 {
-    echo "$(date +%F) $(date +%T) | $1"
+    echo "$(date +%F) $(date +%T) | $nic_name"
     return 0
 }
 
@@ -17,7 +19,7 @@ function main()
 	len_cpu=${#cpu[@]}
 
 	# 获取某网卡接口上的中断 ID，并组合成数组
-	nic_irq=(`grep $1 /proc/interrupts|awk '{print $1}'|sed 's/://'`)
+	nic_irq=(`grep ${nic_name}-TxRx /proc/interrupts|awk '{print $1}'|tr ':|\n' ' '`)
 	len_nic_irq=${#nic_irq[@]}
 
 	# 将 node1 上的 CPU 与对应网卡上的 ID 进行绑定
