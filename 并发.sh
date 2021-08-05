@@ -3,8 +3,8 @@
 
  j=0
  tftp=
- user=netadmin
- passwd=baidu.com
+ user=
+ passwd=
  dev_cfg=
 
 MGip=(`cat iplist`)
